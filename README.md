@@ -1,4 +1,4 @@
-# daily-report
+# daily-reporter
 
 Turns web-server access logs into one self-contained HTML report every day and sends it to a Telegram group.
 
@@ -10,8 +10,8 @@ Turns web-server access logs into one self-contained HTML report every day and s
 ## Setup
 
 ```bash
-git clone <repo-url> /opt/daily-report
-cd /opt/daily-report
+git clone https://github.com/algenixuz/daily-reporter.git /opt/daily-reporter
+cd /opt/daily-reporter
 sudo python3 init.py
 ```
 
@@ -33,7 +33,7 @@ It then:
 3. adds this line to the crontab of the user who ran it:
 
 ```
-59 23 * * * cd /opt/daily-report && /usr/bin/python3 run.py >> logs/cron.log 2>&1 # daily-report:/opt/daily-report
+59 23 * * * cd /opt/daily-reporter && /usr/bin/python3 run.py >> logs/cron.log 2>&1 # daily-report:/opt/daily-reporter
 ```
 
 You can run `init.py` again at any time. It shows the current values as defaults and replaces its own cron line, so you never get duplicates.
