@@ -5,8 +5,6 @@ import urllib.error
 import urllib.request
 import uuid
 
-CAPTION_MAX = 1024
-
 
 class TelegramError(Exception):
     pass
@@ -52,5 +50,5 @@ def send_message(token, chat_id, text):
 def send_document(token, chat_id, path, caption=""):
     with open(path, "rb") as f:
         data = f.read()
-    return call(token, "sendDocument", {"chat_id": chat_id, "caption": caption[:CAPTION_MAX], "parse_mode": "HTML"},
+    return call(token, "sendDocument", {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"},
                 {"document": (os.path.basename(path), data, "text/html")})

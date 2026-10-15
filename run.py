@@ -11,7 +11,6 @@
 """
 import argparse
 import glob
-import html
 import os
 import sys
 import time
@@ -20,22 +19,11 @@ from datetime import datetime, timedelta, timezone
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 
-from src import config, telegram                      # noqa: E402
+from src import config, message, telegram             # noqa: E402
 from src.generators import GENERATORS                 # noqa: E402
-from src.report import ReportError, build, fms, fnum, to_minute  # noqa: E402
+from src.report import ReportError, build, to_minute  # noqa: E402
 
 REPORTS = os.path.join(ROOT, "reports")
-
-
-def caption(name, gen, label, s):
-    e = html.escape
-    lines = ["<b>%s</b> · %s · %s" % (e(name or "report"), e(gen.TITLE), e(label)),
-             "Requests: %s · IPs: %s · %s MB" % (fnum(s["requests"]), fnum(s["ips"]), fnum(s["bytes"] / 1048576)),
-             "5xx: %s (%.2f%%) · 499: %s" % (fnum(s["5xx"]), 100 * s["5xx"] / s["requests"], fnum(s["499"])),
-             "p50 / p95 / p99: %s / %s / %s" % (fms(s["p50"]), fms(s["p95"]), fms(s["p99"]))]
-    if s["incidents"]:
-        lines.append("⚠️ Incidents: %d" % s["incidents"])
-    return "\n".join(lines)
 
 
 def cleanup(keep_days):
@@ -82,7 +70,8 @@ def main():
             day = (datetime.now(timezone.utc) + timedelta(hours=tz)).date()
         since = to_minute("%s 00:00" % day, tz)
         until = to_minute("%s 00:00" % (day + timedelta(days=1)), tz)
-        label = stamp = day.isoformat()
+        label = day.strftime("%a, %d %b %Y")
+        stamp = day.isoformat()
 
     if args.generator:
         conf = next((g for g in cfg.get("generators", []) if g["type"] == args.generator), {})
@@ -106,15 +95,14 @@ def main():
                 f.write(page)
             print("wrote %s (%d requests)" % (out, s["requests"]), file=sys.stderr)
             if send:
-                telegram.send_document(tg["token"], tg["chat_id"], out, caption(name, gen, label, s))
+                telegram.send_document(tg["token"], tg["chat_id"], out, message.report_caption(name, gen, label, s, tz))
                 print("sent to Telegram", file=sys.stderr)
         except (ReportError, telegram.TelegramError, OSError) as e:
             failed += 1
             print("error: %s" % e, file=sys.stderr)
             if send:
                 try:
-                    telegram.send_message(tg["token"], tg["chat_id"], "⚠️ <b>%s</b> · %s · %s\n%s" % (
-                        html.escape(name or "report"), html.escape(gen.TITLE), html.escape(label), html.escape(str(e))))
+                    telegram.send_message(tg["token"], tg["chat_id"], message.failure_text(name, gen, label, e))
                 except telegram.TelegramError as e2:
                     print("error: %s" % e2, file=sys.stderr)
 
