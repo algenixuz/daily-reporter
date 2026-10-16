@@ -260,15 +260,11 @@ def buckets(stats, max_buckets=240):
 
 
 def summary(stats):
-    """Headline numbers, used for the Telegram caption."""
-    failing = sorted(((k, r[1] + r[2]) for k, r in stats.endpoint.items() if r[1] + r[2]), key=lambda kv: -kv[1])
+    """Headline numbers."""
     return {"requests": stats.n, "ips": len(stats.ip), "bytes": stats.bytes,
-            "4xx": sum(c for st, c in stats.status.items() if 400 <= st < 500 and st != 499),
             "5xx": sum(c for st, c in stats.status.items() if st >= 500), "499": stats.status[499],
             "p50": pct(stats.hist, .5), "p95": pct(stats.hist, .95), "p99": pct(stats.hist, .99),
-            "start": min(stats.minute), "end": max(stats.minute) + 1,
-            "incidents": [(w["start"], w["end"] + 1, sorted(w["why"])) for w in incidents(stats)],
-            "failing": failing[:3], "scanners": len(stats.scan), "unparsed": stats.unparsed}
+            "incidents": len(incidents(stats)), "unparsed": stats.unparsed}
 
 
 # ---------------------------------------------------------------- rendering

@@ -95,7 +95,7 @@ def main():
                 f.write(page)
             print("wrote %s (%d requests)" % (out, s["requests"]), file=sys.stderr)
             if send:
-                telegram.send_document(tg["token"], tg["chat_id"], out, message.report_caption(name, gen, label, s, tz))
+                telegram.send_document(tg["token"], tg["chat_id"], out, message.report_caption(name, gen, label))
                 print("sent to Telegram", file=sys.stderr)
         except (ReportError, telegram.TelegramError, OSError) as e:
             failed += 1
